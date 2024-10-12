@@ -8,7 +8,10 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Устанавливаем зависимости
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+# Устанавливаем uvicorn
+RUN pip3 install uvicorn
 
 # Копируем остальной код приложения в контейнер
 COPY . .
@@ -17,4 +20,4 @@ COPY . .
 EXPOSE 80
 
 # Команда для запуска приложения
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["uvicorn", "Main:app", "--host", "0.0.0.0", "--port", "80"]
