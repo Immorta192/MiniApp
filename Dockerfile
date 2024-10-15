@@ -19,7 +19,7 @@ RUN pip3 install uvicorn
 COPY . .
 
 # Открываем порт для доступа к приложению
-EXPOSE http://34.126.79.187
+EXPOSE 80
 
 # Команда для запуска приложения
 CMD ["python", "Main.py", "--host", "34.126.79.187", "--port", "80"]
