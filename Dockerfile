@@ -22,4 +22,4 @@ COPY . .
 EXPOSE 80
 
 # Команда для запуска приложения
-CMD ["uvicorn", "Main:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["python", "Main.py", "--host", "34.126.79.187", "--port", "80"]
