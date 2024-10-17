@@ -19,6 +19,13 @@ jobs:
         run: |
           sudo apt-get update
 
+        #Отладка SSH ключа
+      - name: Set up SSH agent
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+         ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
+
+        
         #Тест SSH подключения
       - name: Test SSH connection
         run: |
