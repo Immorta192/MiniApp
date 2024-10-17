@@ -1,8 +1,8 @@
 version: '3'
 services:
   telegram-bot:
-    image: your-docker-image-name
-    container_name: telegram-bot-container
+    image: immorta192/miniapp
+    container_name: miniapp
     restart: always
     ports:
       - "80:80"  # Если тебе нужно открыть какие-то порты
