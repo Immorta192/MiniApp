@@ -41,7 +41,7 @@ jobs:
 
       
       
-      # 3. Подключение к серверу через SSH и деплой
+      # 3. Подключение к серверу через SSH и деплой.
       - name: Deploy to Server
         uses: appleboy/ssh-action@v0.1.8
         with:
