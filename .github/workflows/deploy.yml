@@ -15,9 +15,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      # 2. Установка Docker (на всякий случай, вдруг это нужно для шагов на GitHub)
+        
+
+      # 2. Установка Docker и удаление предыдущего пакета(на всякий случай, вдруг это нужно для шагов на GitHub)
       - name: Set up Docker
         run: |
+          sudo apt-get remove -y containerd
           sudo apt-get update
           sudo apt-get install -y docker.io
 
