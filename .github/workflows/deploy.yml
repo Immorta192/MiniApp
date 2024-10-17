@@ -37,7 +37,7 @@ jobs:
         #Тест SSH подключения
       - name: Test SSH connection
         run: |
-               ssh -i ${{ secrets.SERVER_SSH_KEY }} -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo SSH connection successful"
+               ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo SSH connection successful"
 
       
       
