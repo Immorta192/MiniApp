@@ -30,7 +30,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}  # Приватный SSH-ключ для подключения
           port: 22  # Порт для SSH (обычно 22)
           script: |
-            cd /путь/к/проекту/на/сервере
+            cd MiniApp
             git pull origin main  # Подтягиваем изменения
             docker-compose down  # Останавливаем текущие контейнеры
             docker-compose up -d --build  # Пересобираем и запускаем контейнер
