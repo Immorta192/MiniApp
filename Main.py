@@ -8,7 +8,7 @@ app = ApplicationBuilder().token("7360518240:AAEJ75gYh5IcuiS2tVWvSJfMIF35E7bf4jg
 async def start(update: Update, context):
     keyboard = [
         [
-            InlineKeyboardButton("Кнопка 1", callback_data='1'),
+            InlineKeyboardButton("Писюлька 1", callback_data='1'),
             InlineKeyboardButton("Кнопка 2", callback_data='2'),
         ]
     ]
