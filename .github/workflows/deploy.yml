@@ -14,16 +14,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      #Декодирование SSH ключа
+      - name: Decode SSH key
+        run: |
+         echo "${{ secrets.SERVER_SSH_KEY_BASE64 }}" | base64 -d > ~/.ssh/id_rsa
+         chmod 600 ~/.ssh/id_rsa
+      
+      
       # 2. Установка Docker
       - name: Set up Docker
         run: |
           sudo apt-get update
 
-        #Отладка SSH ключа
-      - name: Set up SSH agent
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-         ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
+
 
         
         #Тест SSH подключения
@@ -39,7 +42,8 @@ jobs:
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
+          key-path: ~/.ssh/id_rsa  # Путь к декодированному приватному ключу
+          key: ${{ secrets.SERVER_SSH_KEY_BASE64 }}
           port: 22
           script: |
             cd MiniApp
