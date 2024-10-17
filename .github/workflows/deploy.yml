@@ -14,28 +14,43 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      # 2. Декодирование SSH-ключа
+      # 2. Создание директории .ssh
+      - name: Create .ssh directory
+        run: |
+          mkdir -p ~/.ssh
+
+      # 3. Декодирование SSH-ключа
       - name: Decode SSH key
         run: |
           echo "${{ secrets.SERVER_SSH_KEY_BASE64 }}" | base64 -d > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
-      # 3. Настройка SSH-агента и добавление ключа
-      - name: Set up SSH agent
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: ~/.ssh/id_rsa
+      # 4. Проверка существования ключа и прав доступа
+      - name: Verify SSH directory and permissions
+        run: |
+          ls -l ~/.ssh
+          chmod 700 ~/.ssh
+          chmod 600 ~/.ssh/id_rsa
 
-      # 4. Установка Docker
+      # 5. Добавление сервера в known_hosts
+      - name: Add server to known_hosts
+        run: ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
+      # 6. Тестирование SSH-подключения
+      - name: Test SSH connection
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo SSH connection successful"
+
+      # 7. Установка Docker
       - name: Set up Docker
         run: |
           sudo apt-get update
           sudo apt-get install -y docker.io
 
-      # 5. Подключение к серверу через SSH и деплой
+      # 8. Подключение к серверу через SSH и деплой
       - name: Deploy to Server
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
             cd MiniApp
             git pull origin main
             docker-compose down
