@@ -10,48 +10,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Проверка кода из репозитория,kek
+      # 1. Проверка кода из репозитория
       - name: Checkout repository
         uses: actions/checkout@v2
 
-        # 2. Создание директории .ssh
-      - name: Create .ssh directory
-        run: |
-          mkdir -p ~/.ssh
-
-      #Декодирование SSH ключа
+      # 2. Декодирование SSH-ключа
       - name: Decode SSH key
         run: |
-         echo "${{ secrets.SERVER_SSH_KEY_BASE64 }}" | base64 -d > ~/.ssh/id_rsa
-         chmod 600 ~/.ssh/id_rsa
-      
-      
-      # 2. Установка Docker
+          echo "${{ secrets.SERVER_SSH_KEY_BASE64 }}" | base64 -d > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      # 3. Настройка SSH-агента и добавление ключа
+      - name: Set up SSH agent
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ~/.ssh/id_rsa
+
+      # 4. Установка Docker
       - name: Set up Docker
         run: |
           sudo apt-get update
+          sudo apt-get install -y docker.io
 
-
-
-        
-        #Тест SSH подключения
-      - name: Test SSH connection
-        run: |
-               ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo SSH connection successful"
-
-      
-      
-      # 3. Подключение к серверу через SSH и деплой.
+      # 5. Подключение к серверу через SSH и деплой
       - name: Deploy to Server
-        uses: appleboy/ssh-action@v0.1.8
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
-          key-path: ~/.ssh/id_rsa  # Путь к декодированному приватному ключу
-          key: ${{ secrets.SERVER_SSH_KEY_BASE64 }}
-          port: 22
-          script: |
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
             cd MiniApp
             git pull origin main
             docker-compose down
             docker-compose up -d --build
+          EOF
