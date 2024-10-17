@@ -9,7 +9,7 @@ async def start(update: Update, context):
     keyboard = [
         [
             InlineKeyboardButton("Писюлька 1", callback_data='1'),
-            InlineKeyboardButton("Кнопка 2", callback_data='2'),
+            InlineKeyboardButton("Ну вторая кнопка и что 2", callback_data='2'),
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
