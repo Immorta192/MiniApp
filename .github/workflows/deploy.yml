@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Проверка кода из репозитория
+      # 1. Проверка кода из репозитория,kek
       - name: Checkout repository
         uses: actions/checkout@v2
 
