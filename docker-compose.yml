@@ -1,0 +1,10 @@
+version: '3'
+services:
+  telegram-bot:
+    image: your-docker-image-name
+    container_name: telegram-bot-container
+    restart: always
+    ports:
+      - "80:80"  # Если тебе нужно открыть какие-то порты
+    environment:
+      - YOUR_ENV_VARIABLE=value
