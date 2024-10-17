@@ -1,0 +1,36 @@
+name: Deploy Telegram Bot
+
+# Запускать действие при коммитах в ветку main
+on:
+  push:
+    branches:
+      - main  # Ветка, при пуше в которую будет происходить автоматическое развертывание
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Проверка кода из репозитория
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # 2. Установка Docker (на всякий случай, вдруг это нужно для шагов на GitHub)
+      - name: Set up Docker
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker.io
+
+      # 3. Подключение к серверу через SSH и деплой
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@v0.1.3
+        with:
+          host: ${{ secrets.SERVER_IP }}    # IP адрес сервера, храним его в GitHub Secrets
+          username: ${{ secrets.SERVER_USER }}  # Пользователь для подключения по SSH
+          key: ${{ secrets.SERVER_SSH_KEY }}  # Приватный SSH-ключ для подключения
+          port: 22  # Порт для SSH (обычно 22)
+          script: |
+            cd MiniApp
+            git pull origin main  # Подтягиваем изменения
+            docker-compose down  # Останавливаем текущие контейнеры
+            docker-compose up -d --build  # Пересобираем и запускаем контейнер
