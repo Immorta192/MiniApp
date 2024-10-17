@@ -19,6 +19,13 @@ jobs:
         run: |
           sudo apt-get update
 
+        #Тест SSH подключения
+      - name: Test SSH connection
+        run: |
+               ssh -i ${{ secrets.SERVER_SSH_KEY }} -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo SSH connection successful"
+
+      
+      
       # 3. Подключение к серверу через SSH и деплой
       - name: Deploy to Server
         uses: appleboy/ssh-action@v0.1.8
