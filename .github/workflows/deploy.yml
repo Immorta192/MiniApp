@@ -35,6 +35,10 @@ jobs:
       - name: Add server to known_hosts
         run: ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
+      - name: Connect using SSH with debug
+        run: ssh -vvv -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo SSH connection successful"
+
+      
       # 6. Подключение по SSH для проверки соединения
       - name: Connect using SSH
         run: ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo SSH connection successful"
