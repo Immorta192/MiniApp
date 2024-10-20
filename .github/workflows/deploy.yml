@@ -21,19 +21,25 @@ jobs:
           echo "${{ secrets.SERVER_SSH_KEY }}" | base64 -d > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
-      # 3. Удаление старых ключей из known_hosts
+      # 3. Подготовка known_hosts
+      - name: Prepare SSH config
+        run: |
+          mkdir -p ~/.ssh
+          touch ~/.ssh/known_hosts
+
+      # 4. Удаление старых ключей из known_hosts
       - name: Remove known_hosts entry
         run: ssh-keygen -R "${{ secrets.SERVER_IP }}"
 
-      # 4. Добавление сервера в known_hosts
+      # 5. Добавление сервера в known_hosts
       - name: Add server to known_hosts
         run: ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
-      # 5. Подключение по SSH для проверки соединения
+      # 6. Подключение по SSH для проверки соединения
       - name: Connect using SSH
         run: ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo SSH connection successful"
 
-      # 6. Установка Docker и деплой
+      # 7. Установка Docker и деплой
       - name: Deploy to Server
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
