@@ -21,8 +21,14 @@ jobs:
           ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
 
       # 3. Удаление старых ключей из known_hosts
-      - name: Remove known_hosts entry
+      - name: Clear known_hosts
         run: ssh-keygen -R "${{ secrets.SERVER_IP }}"
+
+        #Логирование
+      - name: Debug SSH connection
+        run: ssh -vvv -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo SSH connection successful"
+
+
 
       # 4. Добавление сервера в known_hosts
       - name: Add server to known_hosts
