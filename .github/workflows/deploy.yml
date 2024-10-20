@@ -14,15 +14,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      # 3. Удаление старых ключей из known_hosts
+      - name: Clear known_hosts
+        run: ssh-keygen -R "${{ secrets.SERVER_IP }}"
+      
+      
+      
       # 2. Настройка SSH агента и добавление ключа.
       - name: Set up SSH agent
         uses: webfactory/ssh-agent@v0.5.3
         with:
           ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
-
-      # 3. Удаление старых ключей из known_hosts
-      - name: Clear known_hosts
-        run: ssh-keygen -R "${{ secrets.SERVER_IP }}"
 
         #Логирование
       - name: Debug SSH connection
