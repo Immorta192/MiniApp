@@ -42,7 +42,6 @@ jobs:
             cd MiniApp && \
             git pull origin main && \
             docker-compose down && \
-            docker rm -f miniapp || true && \
-            docker-compose up -d --build
+            docker-compose up -d --build --no-cache
           "
 
