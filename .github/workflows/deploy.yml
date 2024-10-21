@@ -43,7 +43,7 @@ jobs:
          git pull origin main && \
          docker builder prune -f && \
          docker compose down && \
-         docker compose up -d --build --no-cache
+      
          "
 
 
