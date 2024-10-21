@@ -10,26 +10,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Проверка кода из репозитория
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      # 2. Добавление SSH-ключа
       - name: Add SSH private key
         run: |
-          mkdir -p ~/.ssh
-          echo "$SERVER_SSH_KEY" > ~/.ssh/authorized_keys
-          chmod 600 ~/.ssh/authorized_keys
+          mkdir -p ~/.ssh  # Создаем папку для SSH-ключей, если она не существует
+          echo "$SSH_KEY" > ~/.ssh/id_rsa  # Сохраняем приватный ключ в id_rsa
+          chmod 600 ~/.ssh/id_rsa  # Устанавливаем права доступа для приватного ключа
         env:
           SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
 
+      # 3. Подготовка known_hosts
       - name: Prepare SSH config
         run: |
-          touch ~/.ssh/authorized_keys
-          ssh-keygen -R "${{ secrets.SERVER_IP }}"
-          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/authorized_keys
+          mkdir -p ~/.ssh  # Создаем папку, если она отсутствует
+          touch ~/.ssh/known_hosts  # Создаем файл known_hosts
+          ssh-keygen -R "${{ secrets.SERVER_IP }}"  # Удаляем старую запись о сервере
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts  # Добавляем новый ключ сервера
 
+      # 4. Тест подключения по SSH
       - name: Test SSH connection
-        run: ssh -i ~/.ssh/authorized_keys -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo SSH connection successful"
+        run: ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo SSH connection successful"
 
+      # 5. Деплой на сервер
       - name: Deploy to Server
         run: |
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "
