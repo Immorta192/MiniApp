@@ -8,12 +8,12 @@ app = ApplicationBuilder().token("7360518240:AAEJ75gYh5IcuiS2tVWvSJfMIF35E7bf4jg
 async def start(update: Update, context):
     keyboard = [
         [
-            InlineKeyboardButton("Писюлька 1", callback_data='1'),
-            InlineKeyboardButton("Ну вторая кнопка и что 22", callback_data='2'),
+            InlineKeyboardButton("button 1", callback_data='1'),
+            InlineKeyboardButton("button 2", callback_data='2'),
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text('Выбери опцию:', reply_markup=reply_markup)
+    await update.message.reply_text('choise:', reply_markup=reply_markup)
 
 # Функция для обработки нажатий кнопок
 async def button(update: Update, context):
@@ -22,9 +22,9 @@ async def button(update: Update, context):
 
     # Ответ нажатия
     if query.data == '1':
-        await query.edit_message_text(text="Ты нажал Кнопку 1")
+        await query.edit_message_text(text="you push on 1")
     elif query.data == '2':
-        await query.edit_message_text(text="Ты нажал Кнопку 2")
+        await query.edit_message_text(text="you put on 2")
 
 # Добавляем обработчики
 app.add_handler(CommandHandler("start", start))
