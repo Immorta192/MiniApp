@@ -1,10 +1,9 @@
 name: Deploy Telegram Bot
 
-# Запускать действие при коммитах в ветку main
 on:
   push:
     branches:
-      - main  # Ветка, при пуше в которую будет происходить автоматическое развертывание
+      - main
 
 jobs:
   deploy:
@@ -15,25 +14,35 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-        
-
-      # 2. Установка Docker и удаление предыдущего пакета(на всякий случай, вдруг это нужно для шагов на GitHub)
-      - name: Set up Docker
+      # 2. Добавление SSH-ключа
+      - name: Add SSH private key
         run: |
-          sudo apt-get remove -y containerd
-          sudo apt-get update
-         
+          mkdir -p ~/.ssh  # Создаем папку для SSH-ключей, если она не существует
+          echo "$SSH_KEY" > ~/.ssh/id_rsa  # Сохраняем приватный ключ в id_rsa
+          chmod 600 ~/.ssh/id_rsa  # Устанавливаем права доступа для приватного ключа
+        env:
+          SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
 
-      # 3. Подключение к серверу через SSH и деплой
+      # 3. Подготовка known_hosts
+      - name: Prepare SSH config
+        run: |
+          mkdir -p ~/.ssh  # Создаем папку, если она отсутствует
+          touch ~/.ssh/known_hosts  # Создаем файл known_hosts
+          ssh-keygen -R "${{ secrets.SERVER_IP }}"  # Удаляем старую запись о сервере
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts  # Добавляем новый ключ сервера
+
+      # 4. Тест подключения по SSH
+      - name: Test SSH connection
+        run: ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo SSH connection successful"
+
+      # 5. Деплой на сервер
       - name: Deploy to Server
-        uses: appleboy/ssh-action@v0.1.3
-        with:
-          host: ${{ secrets.SERVER_IP }}    # IP адрес сервера, храним его в GitHub Secrets
-          username: ${{ secrets.SERVER_USER }}  # Пользователь для подключения по SSH
-          key: ${{ secrets.SERVER_SSH_KEY }}  # Приватный SSH-ключ для подключения
-          port: 22  # Порт для SSH (обычно 22)
-          script: |
-            cd MiniApp
-            git pull origin main  # Подтягиваем изменения
-            docker-compose down  # Останавливаем текущие контейнеры
-            docker-compose up -d --build  # Пересобираем и запускаем контейнер
+        run: |
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "
+            cd MiniApp && \
+            git pull origin main && \
+            docker-compose down && \
+            docker rm -f miniapp || true && \
+            docker-compose up -d --build
+          "
+
