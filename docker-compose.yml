@@ -1,10 +1,10 @@
 version: '3'
 services:
   telegram-bot:
-    image: immorta192/miniapp
+    image: immorta192/miniapp:latest  # Убедись, что ты используешь тег latest или другой актуальный тег
     container_name: miniapp
     restart: always
     ports:
-      - "80:80"  # Если тебе нужно открыть какие-то порты
+      - "80:80"  # Если нужно открыть порты
     environment:
       - YOUR_ENV_VARIABLE=value
