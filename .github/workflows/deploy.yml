@@ -10,40 +10,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Проверка кода из репозитория
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      # 3. Подготовка known_hosts
-      - name: Prepare SSH config
+      - name: Add SSH private key
         run: |
           mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+
+      - name: Prepare SSH config
+        run: |
           touch ~/.ssh/known_hosts
+          ssh-keygen -R "${{ secrets.SERVER_IP }}"
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
-      # 4. Удаление старых ключей из known_hosts
-      - name: Remove known_hosts entry
-        run: ssh-keygen -R "${{ secrets.SERVER_IP }}"
-
-      # 5. Добавление сервера в known_hosts
-      - name: Add server to known_hosts
-        run: ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
-
-      - name: Connect using SSH with debug
-        run: ssh -vvv -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo SSH connection successful"
-
-      - name: SSH Debug
-        run: ssh -vvv -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo SSH connection successful"
-
-      # 6. Подключение по SSH для проверки соединения
-      - name: Connect using SSH
+      - name: Test SSH connection
         run: ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo SSH connection successful"
 
-      # 7. Установка Docker и деплой
       - name: Deploy to Server
         run: |
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << EOF
-            cd MiniApp
-            git pull origin main
-            docker-compose down
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "
+            cd MiniApp && \
+            git pull origin main && \
+            docker-compose down && \
             docker-compose up -d --build
-          EOF
+          "
