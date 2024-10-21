@@ -41,7 +41,7 @@ jobs:
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "
             cd MiniApp && \
             git pull origin main && \
-            docker-compose down && \
-            docker-compose up -d --build --no-cache
+            docker compose down && \
+            docker compose up -d --build --no-cache
           "
 
