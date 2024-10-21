@@ -16,8 +16,8 @@ jobs:
       - name: Add SSH private key
         run: |
           mkdir -p ~/.ssh
-          echo "$SSH_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+          echo "$SERVER_SSH_KEY" > ~/.ssh/authorized_keys
+          chmod 600 ~/.ssh/authorized_keys
         env:
           SSH_KEY: ${{ secrets.SSH_KEY }}
 
@@ -28,7 +28,7 @@ jobs:
           ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
       - name: Test SSH connection
-        run: ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo SSH connection successful"
+        run: ssh -i ~/.ssh/authorized_keys -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo SSH connection successful"
 
       - name: Deploy to Server
         run: |
