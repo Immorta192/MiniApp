@@ -19,13 +19,13 @@ jobs:
           echo "$SERVER_SSH_KEY" > ~/.ssh/authorized_keys
           chmod 600 ~/.ssh/authorized_keys
         env:
-          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
 
       - name: Prepare SSH config
         run: |
-          touch ~/.ssh/known_hosts
+          touch ~/.ssh/authorized_keys
           ssh-keygen -R "${{ secrets.SERVER_IP }}"
-          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/authorized_keys
 
       - name: Test SSH connection
         run: ssh -i ~/.ssh/authorized_keys -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "echo SSH connection successful"
