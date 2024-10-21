@@ -14,13 +14,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      # 2. Декодирование SSH-ключа
-      - name: Decode SSH private key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SERVER_SSH_KEY }}" | base64 -d > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-
       # 3. Подготовка known_hosts
       - name: Prepare SSH config
         run: |
