@@ -12,8 +12,12 @@ COPY requirements.txt .
 # Устанавливаем зависимости
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-# Устанавливаем uvicorn
+# Устанавливаем uvicorn и aiohttp
 RUN pip3 install uvicorn
+
+RUN pip3 install aiohttp
+
+RUN pip3 python-telegram-bot
 
 # Копируем остальной код приложения в контейнер
 COPY . .
