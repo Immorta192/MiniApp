@@ -55,12 +55,8 @@ jobs:
       - name: Deploy to Server
         run: |
          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "
-         docker login -u wildstar1224@gmail.com -p PlanetEarth161;  # Замените на ваши данные
-         cd MiniApp && \
-         git pull origin main && \
-         docker-compose down && \
-         docker-compose up -d --build
+         docker pull ${{ secrets.DOCKERHUB_USERNAME }}/miniapp:latest && \  # Получаем последний образ
+         docker stop my-app || true && \  # Останавливаем контейнер
+         docker rm my-app || true && \  # Удаляем контейнер
+         docker run -d --name my-app -p 80:80 ${{ secrets.DOCKERHUB_USERNAME }}/miniapp:latest
          "
-
-
-
