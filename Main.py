@@ -1,22 +1,24 @@
-import requests
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
 import logging
+import aiohttp  # Используем aiohttp для асинхронных запросов
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
 
 # Функция для получения информации о фильме через OMDb API
-def get_movie_info(title: str) -> dict:
+async def get_movie_info(title: str) -> dict:
     api_key = 'bf196073'
     base_url = 'http://www.omdbapi.com/'
     params = {
         'apikey': api_key,
         't': title
     }
-    response = requests.get(base_url, params=params)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        return {"Error": "Failed to retrieve data"}
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(base_url, params=params) as response:
+            if response.status == 200:
+                return await response.json()
+            else:
+                return {"Error": "Failed to retrieve data"}
 
 
 # Логирование для удобства отладки
@@ -24,14 +26,14 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 
 # Функция для ответа бота
-async def start(update: Update, context):
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text('Привет! Введи название фильма, чтобы узнать о нём информацию.')
 
 
 # Функция для обработки текста и отправки запроса на OMDb API
-async def get_movie(update: Update, context):
+async def get_movie(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     movie_title = update.message.text
-    movie_info = get_movie_info(movie_title)
+    movie_info = await get_movie_info(movie_title)  # Добавлено await
 
     if "Error" not in movie_info:
         reply_message = (
