@@ -17,8 +17,6 @@ RUN pip3 install uvicorn
 
 RUN pip3 install aiohttp
 
-RUN pip3 python-telegram-bot
-
 # Копируем остальной код приложения в контейнер
 COPY . .
 
