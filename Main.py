@@ -2,7 +2,7 @@ import logging
 import aiohttp
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
-from translate import Translator  # Подключаем библиотеку для перевода
+from googletrans import Translator  # Подключаем библиотеку googletrans для перевода
 
 # Логирование для удобства отладки
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -37,9 +37,9 @@ async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 # Функция для перевода русского текста на английский
 def translate_text(text: str, lang: str) -> str:
     if lang == 'ru':
-        translator = Translator(from_lang="russian", to_lang="english")
-        translated_text = translator.translate(text)
-        return translated_text
+        translator = Translator()
+        translated = translator.translate(text, src='ru', dest='en')
+        return translated.text
     return text  # Если язык английский, перевод не требуется
 
 
