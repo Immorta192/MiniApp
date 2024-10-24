@@ -2,12 +2,14 @@ import logging
 import aiohttp
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
+from translate import Translator  # Подключаем библиотеку для перевода
 
 # Логирование для удобства отладки
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 # Глобальная переменная для хранения языка пользователя
 user_language = {}
+
 
 # Функция для выбора языка
 async def choose_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -17,6 +19,7 @@ async def choose_language(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text('Выберите язык / Choose a language:', reply_markup=reply_markup)
+
 
 # Функция для установки языка
 async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -30,8 +33,18 @@ async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         user_language[query.from_user.id] = 'en'
         await query.edit_message_text('Language set: English. Enter the movie title.')
 
+
+# Функция для перевода русского текста на английский
+def translate_text(text: str, lang: str) -> str:
+    if lang == 'ru':
+        translator = Translator(from_lang="russian", to_lang="english")
+        translated_text = translator.translate(text)
+        return translated_text
+    return text  # Если язык английский, перевод не требуется
+
+
 # Функция для получения информации о фильмах через OMDb API
-async def search_movies(title: str, lang: str) -> dict:
+async def search_movies(title: str) -> dict:
     api_key = 'bf196073'
     base_url = 'http://www.omdbapi.com/'
     params = {
@@ -45,6 +58,7 @@ async def search_movies(title: str, lang: str) -> dict:
                 return await response.json()
             else:
                 return {"Error": "Failed to retrieve data"}
+
 
 # Функция для получения конкретной информации о фильме
 async def get_movie_info(imdb_id: str) -> dict:
@@ -62,17 +76,23 @@ async def get_movie_info(imdb_id: str) -> dict:
             else:
                 return {"Error": "Failed to retrieve data"}
 
+
 # Функция для обработки текста и поиска фильмов
 async def get_movie(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     movie_title = update.message.text
     lang = user_language.get(update.message.from_user.id, 'en')  # По умолчанию английский
-    movies_info = await search_movies(movie_title, lang)
+
+    # Переводим текст, если выбран русский язык
+    translated_title = translate_text(movie_title, lang)
+
+    movies_info = await search_movies(translated_title)
 
     if "Error" not in movies_info and movies_info.get("Search"):
         keyboard = []
         for movie in movies_info['Search']:
             # Добавляем по одной кнопке на строку, чтобы текст помещался
-            keyboard.append([InlineKeyboardButton(f"{movie['Title']} ({movie['Year']})", callback_data=movie['imdbID'])])
+            keyboard.append(
+                [InlineKeyboardButton(f"{movie['Title']} ({movie['Year']})", callback_data=movie['imdbID'])])
 
         reply_markup = InlineKeyboardMarkup(keyboard)
         if lang == 'ru':
@@ -84,6 +104,7 @@ async def get_movie(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await update.message.reply_text("Не удалось найти информацию о фильме.")
         else:
             await update.message.reply_text("Failed to find movie information.")
+
 
 # Функция для обработки выбора фильма пользователем
 async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -117,6 +138,7 @@ async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         reply_message = "Error retrieving movie information."
 
     await query.edit_message_text(reply_message)
+
 
 if __name__ == '__main__':
     application = ApplicationBuilder().token('7360518240:AAEJ75gYh5IcuiS2tVWvSJfMIF35E7bf4jg').build()
