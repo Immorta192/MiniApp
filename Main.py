@@ -4,6 +4,8 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, CallbackQueryHandler, ContextTypes
 from deep_translator import GoogleTranslator
 
+# Словарь для хранения выбора языка
+user_language = {}
 # Настройка логгера
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -11,25 +13,13 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Словарь для хранения выбора языка
-user_language = {}
-
 # Функция для перевода текста
 def translate_text(text: str, lang: str) -> str:
-    if not text:
-        return text  # Если текст пуст, возвращаем его как есть
-
-    try:
-        if lang == 'ru':
-            return GoogleTranslator(source='en', target='ru').translate(text)
-        elif lang == 'en':
-            return GoogleTranslator(source='ru', target='en').translate(text)
-    except Exception as e:
-        logger.error(f"Ошибка при переводе: {e}")
+    if lang == 'ru':
+        return GoogleTranslator(source='ru', target='en').translate(text)
+    elif lang == 'en':
+        return GoogleTranslator(source='en', target='ru').translate(text)
     return text
-
-# Остальные функции, как и раньше...
-
 
 # Функция для выбора языка при старте
 async def choose_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -87,14 +77,16 @@ async def get_movie_info(movie_id: str) -> dict:
                 return {"Error": "Failed to retrieve data"}
 
 # Функция для получения информации о фильме
-# Функция для получения информации о фильме
 async def get_movie(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         movie_title = update.message.text
         lang = user_language.get(update.message.from_user.id, 'en')  # По умолчанию английский
 
-        # Переводим текст запроса, если выбран русский язык
-        translated_title = translate_text(movie_title, lang)
+        # Переводим текст запроса только если выбран русский язык
+        if lang == 'ru':
+            translated_title = translate_text(movie_title, lang)
+        else:
+            translated_title = movie_title
 
         movies_info = await search_movies(translated_title)
 
@@ -102,8 +94,13 @@ async def get_movie(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             keyboard = []
             for movie in movies_info['Search']:
                 # Переводим названия фильмов для кнопок в зависимости от выбранного языка
-                translated_movie_title = translate_text(f"{movie['Title']} ({movie['Year']})", lang)
-                keyboard.append([InlineKeyboardButton(translated_movie_title[:30] + "\n" + translated_movie_title[30:], callback_data=movie['imdbID'])])
+                if lang == 'ru':
+                    translated_movie_title = translate_text(f"{movie['Title']} ({movie['Year']})", lang)
+                else:
+                    translated_movie_title = f"{movie['Title']} ({movie['Year']})"
+
+                keyboard.append([InlineKeyboardButton(translated_movie_title[:30] + "\n" + translated_movie_title[30:],
+                                                      callback_data=movie['imdbID'])])
 
             reply_markup = InlineKeyboardMarkup(keyboard)
             if lang == 'ru':
@@ -117,6 +114,7 @@ async def get_movie(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                 await update.message.reply_text("Failed to find movie information.")
     except Exception as e:
         logger.error(f"Ошибка при получении информации о фильме: {e}")
+
 
 # Функция для получения данных о конкретном фильме
 async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -151,8 +149,6 @@ async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         reply_message = "Error retrieving movie information."
 
     await query.edit_message_text(reply_message)
-
-
 
 if __name__ == '__main__':
     application = ApplicationBuilder().token('7360518240:AAEJ75gYh5IcuiS2tVWvSJfMIF35E7bf4jg').build()
