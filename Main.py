@@ -1,55 +1,66 @@
 import logging
 import aiohttp
-from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
-from googletrans import Translator  # Подключаем библиотеку googletrans для перевода
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, CallbackQueryHandler, ContextTypes
+from deep_translator import GoogleTranslator
 
-# Логирование для удобства отладки
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+# Настройка логгера
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
+logger = logging.getLogger(__name__)
 
-# Глобальная переменная для хранения языка пользователя
+# Словарь для хранения выбора языка
 user_language = {}
 
+# Функция для перевода текста
+def translate_text(text: str, lang: str) -> str:
+    if not text:
+        return text  # Если текст пуст, возвращаем его как есть
 
-# Функция для выбора языка
+    try:
+        if lang == 'ru':
+            return GoogleTranslator(source='en', target='ru').translate(text)
+        elif lang == 'en':
+            return GoogleTranslator(source='ru', target='en').translate(text)
+    except Exception as e:
+        logger.error(f"Ошибка при переводе: {e}")
+    return text
+
+# Остальные функции, как и раньше...
+
+
+# Функция для выбора языка при старте
 async def choose_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     keyboard = [
-        [InlineKeyboardButton("🇷🇺 Русский", callback_data='lang_ru')],
-        [InlineKeyboardButton("🇬🇧 English", callback_data='lang_en')]
+        [InlineKeyboardButton("Русский", callback_data='lang_ru')],
+        [InlineKeyboardButton("English", callback_data='lang_en')],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text('Выберите язык / Choose a language:', reply_markup=reply_markup)
 
+    await update.message.reply_text('Выберите язык / Choose your language:', reply_markup=reply_markup)
 
-# Функция для установки языка
+# Функция для обработки выбора языка
 async def set_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
 
+    # Устанавливаем язык для пользователя
     if query.data == 'lang_ru':
         user_language[query.from_user.id] = 'ru'
-        await query.edit_message_text('Язык установлен: Русский. Введите название фильма.')
+        await query.edit_message_text("Язык выбран. Введите название фильма.")
     elif query.data == 'lang_en':
         user_language[query.from_user.id] = 'en'
-        await query.edit_message_text('Language set: English. Enter the movie title.')
+        await query.edit_message_text("Language set. Please enter the movie title.")
 
-
-# Функция для перевода русского текста на английский
-def translate_text(text: str, lang: str) -> str:
-    if lang == 'ru':
-        translator = Translator()
-        translated = translator.translate(text, src='ru', dest='en')
-        return translated.text
-    return text  # Если язык английский, перевод не требуется
-
-
-# Функция для получения информации о фильмах через OMDb API
+# Функция для поиска фильмов
 async def search_movies(title: str) -> dict:
-    api_key = 'bf196073'
+    api_key = 'bf196073'  # Ваш API ключ
     base_url = 'http://www.omdbapi.com/'
     params = {
         'apikey': api_key,
-        's': title
+        's': title  # Используем 's' для поиска
     }
 
     async with aiohttp.ClientSession() as session:
@@ -59,14 +70,13 @@ async def search_movies(title: str) -> dict:
             else:
                 return {"Error": "Failed to retrieve data"}
 
-
-# Функция для получения конкретной информации о фильме
-async def get_movie_info(imdb_id: str) -> dict:
-    api_key = 'bf196073'
+# Функция для получения информации о конкретном фильме
+async def get_movie_info(movie_id: str) -> dict:
+    api_key = 'bf196073'  # Ваш API ключ
     base_url = 'http://www.omdbapi.com/'
     params = {
         'apikey': api_key,
-        'i': imdb_id
+        'i': movie_id  # Используем 'i' для получения информации о фильме по ID
     }
 
     async with aiohttp.ClientSession() as session:
@@ -76,37 +86,39 @@ async def get_movie_info(imdb_id: str) -> dict:
             else:
                 return {"Error": "Failed to retrieve data"}
 
-
-# Функция для обработки текста и поиска фильмов
+# Функция для получения информации о фильме
+# Функция для получения информации о фильме
 async def get_movie(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    movie_title = update.message.text
-    lang = user_language.get(update.message.from_user.id, 'en')  # По умолчанию английский
+    try:
+        movie_title = update.message.text
+        lang = user_language.get(update.message.from_user.id, 'en')  # По умолчанию английский
 
-    # Переводим текст, если выбран русский язык
-    translated_title = translate_text(movie_title, lang)
+        # Переводим текст запроса, если выбран русский язык
+        translated_title = translate_text(movie_title, lang)
 
-    movies_info = await search_movies(translated_title)
+        movies_info = await search_movies(translated_title)
 
-    if "Error" not in movies_info and movies_info.get("Search"):
-        keyboard = []
-        for movie in movies_info['Search']:
-            # Добавляем по одной кнопке на строку, чтобы текст помещался
-            keyboard.append(
-                [InlineKeyboardButton(f"{movie['Title']} ({movie['Year']})", callback_data=movie['imdbID'])])
+        if "Error" not in movies_info and movies_info.get("Search"):
+            keyboard = []
+            for movie in movies_info['Search']:
+                # Переводим названия фильмов для кнопок в зависимости от выбранного языка
+                translated_movie_title = translate_text(f"{movie['Title']} ({movie['Year']})", lang)
+                keyboard.append([InlineKeyboardButton(translated_movie_title[:30] + "\n" + translated_movie_title[30:], callback_data=movie['imdbID'])])
 
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        if lang == 'ru':
-            await update.message.reply_text('Выберите нужную часть фильма:', reply_markup=reply_markup)
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            if lang == 'ru':
+                await update.message.reply_text('Выберите нужную часть фильма:', reply_markup=reply_markup)
+            else:
+                await update.message.reply_text('Select the movie part:', reply_markup=reply_markup)
         else:
-            await update.message.reply_text('Select the movie part:', reply_markup=reply_markup)
-    else:
-        if lang == 'ru':
-            await update.message.reply_text("Не удалось найти информацию о фильме.")
-        else:
-            await update.message.reply_text("Failed to find movie information.")
+            if lang == 'ru':
+                await update.message.reply_text("Не удалось найти информацию о фильме.")
+            else:
+                await update.message.reply_text("Failed to find movie information.")
+    except Exception as e:
+        logger.error(f"Ошибка при получении информации о фильме: {e}")
 
-
-# Функция для обработки выбора фильма пользователем
+# Функция для получения данных о конкретном фильме
 async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
@@ -116,28 +128,30 @@ async def movie_details(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     lang = user_language.get(query.from_user.id, 'en')
 
     if "Error" not in movie_info:
+        # Переводим описание фильма и его детали в зависимости от выбранного языка
         if lang == 'ru':
             reply_message = (
-                f"Название: {movie_info.get('Title')}\n"
+                f"Название: {translate_text(movie_info.get('Title'), lang)}\n"
                 f"Год: {movie_info.get('Year')}\n"
-                f"Режиссёр: {movie_info.get('Director')}\n"
-                f"Жанр: {movie_info.get('Genre')}\n"
+                f"Режиссёр: {translate_text(movie_info.get('Director'), lang)}\n"
+                f"Жанр: {translate_text(movie_info.get('Genre'), lang)}\n"
                 f"Рейтинг: {movie_info.get('imdbRating')}\n"
-                f"Описание: {movie_info.get('Plot')}\n"
+                f"Описание: {translate_text(movie_info.get('Plot'), lang)}\n"
             )
         else:
             reply_message = (
-                f"Title: {movie_info.get('Title')}\n"
+                f"Title: {translate_text(movie_info.get('Title'), lang)}\n"
                 f"Year: {movie_info.get('Year')}\n"
-                f"Director: {movie_info.get('Director')}\n"
-                f"Genre: {movie_info.get('Genre')}\n"
+                f"Director: {translate_text(movie_info.get('Director'), lang)}\n"
+                f"Genre: {translate_text(movie_info.get('Genre'), lang)}\n"
                 f"IMDb Rating: {movie_info.get('imdbRating')}\n"
-                f"Plot: {movie_info.get('Plot')}\n"
+                f"Plot: {translate_text(movie_info.get('Plot'), lang)}\n"
             )
     else:
         reply_message = "Error retrieving movie information."
 
     await query.edit_message_text(reply_message)
+
 
 
 if __name__ == '__main__':
