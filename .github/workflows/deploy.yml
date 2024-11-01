@@ -8,6 +8,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+     contents: write  # Позволяет записывать в репозиторий
+
 
     steps:
       # 1. Проверка кода из репозитория
