@@ -100,14 +100,7 @@ async def movie_details(update: Update, context: CallbackContext) -> None:
 
 
 if __name__ == '__main__':
-    # Получение токена из переменной окружения
-    token = os.environ.get('TELEGRAM_TOKEN')
-
-    # Проверка, был ли токен успешно получен
-    if not token:
-        raise ValueError("No token provided. Set the TELEGRAM_TOKEN environment variable.")
-
-    application = ApplicationBuilder().token(token).build()
+    application = ApplicationBuilder().token('7360518240:AAEJ75gYh5IcuiS2tVWvSJfMIF35E7bf4jg').build()
 
     # Обработчик для нажатия на кнопку "Start"
     application.add_handler(MessageHandler(filters.Regex("^Start$"), start_button_action))
