@@ -58,14 +58,12 @@ jobs:
       # 5. Деплой на сервер
       - name: Deploy to Server
         run: |
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} '
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/miniapp:latest && \
           docker stop my-app || true && \
           docker rm my-app || true && \
           docker run -d --name my-app -p 80:80 -e TELEGRAM_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }} ${{ secrets.DOCKERHUB_USERNAME }}/miniapp:latest
-         
-
-      
+          '
 
   pages:
     runs-on: ubuntu-latest
