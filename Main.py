@@ -1,5 +1,6 @@
 import logging
 import aiohttp
+import os
 from telegram import (Update, KeyboardButton, WebAppInfo, ReplyKeyboardMarkup)
 from telegram.ext import (ApplicationBuilder, CommandHandler, CallbackContext, MessageHandler, filters, CallbackQueryHandler)
 
@@ -96,8 +97,16 @@ async def movie_details(update: Update, context: CallbackContext) -> None:
     else:
         await query.edit_message_text("Ошибка при получении информации о фильме.")
 
+
 if __name__ == '__main__':
-    application = ApplicationBuilder().token('7360518240:AAEJ75gYh5IcuiS2tVWvSJfMIF35E7bf4jg').build()
+    # Получение токена из переменной окружения
+    token = os.environ.get('TELEGRAM_TOKEN')
+
+    # Проверка, был ли токен успешно получен
+    if not token:
+        raise ValueError("No token provided. Set the TELEGRAM_TOKEN environment variable.")
+
+    application = ApplicationBuilder().token(token).build()
 
     # Обработчик для нажатия на кнопку "Start"
     application.add_handler(MessageHandler(filters.Regex("^Start$"), start_button_action))
