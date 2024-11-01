@@ -17,13 +17,16 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
+
 logger = logging.getLogger(__name__)
-async def launch_web_ui(update: Update, callback: CallbackContext):
-    # For now, we just display google.com...
+async def launch_web_ui(update: Update, context: CallbackContext):
+    # Define a keyboard with a button that opens Google in a web app
     kb = [
-        [KeyboardButton("Show me Google!", web_app=WebAppInfo("https://google.com"))]
+        [KeyboardButton("Show me Google!", web_app=WebAppInfo(url="https://google.com"))]
     ]
-    await update.message.reply_text("Let's do this...", reply_markup=ReplyKeyboardMarkup(kb))
+    application.add_handler(CommandHandler("web", launch_web_ui))
+
+    await update.message.reply_text("Let's do this...", reply_markup=ReplyKeyboardMarkup(kb, resize_keyboard=True))
 
 # Функция для поиска фильмов
 async def search_movies(title: str) -> dict:
