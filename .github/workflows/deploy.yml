@@ -1,9 +1,9 @@
-name: Deploy Telegram Bot
+name: Deploy Telegram Bot and GitHub Pages
 
 on:
   push:
     branches:
-      - main
+      - main  # замените на нужную ветку
 
 jobs:
   deploy:
@@ -28,24 +28,24 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/miniapp:latest  # Укажи свой образ
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/miniapp:latest  # Укажите свой образ
 
       # 2. Добавление SSH-ключа
       - name: Add SSH private key
         run: |
-          mkdir -p ~/.ssh  # Создаем папку для SSH-ключей, если она не существует
-          echo "$SSH_KEY" > ~/.ssh/id_rsa  # Сохраняем приватный ключ в id_rsa
-          chmod 600 ~/.ssh/id_rsa  # Устанавливаем права доступа для приватного ключа
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
         env:
           SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
 
       # 3. Подготовка known_hosts
       - name: Prepare SSH config
         run: |
-          mkdir -p ~/.ssh  # Создаем папку, если она отсутствует
-          touch ~/.ssh/known_hosts  # Создаем файл known_hosts
-          ssh-keygen -R "${{ secrets.SERVER_IP }}"  # Удаляем старую запись о сервере
-          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts  # Добавляем новый ключ сервера
+          mkdir -p ~/.ssh
+          touch ~/.ssh/known_hosts
+          ssh-keygen -R "${{ secrets.SERVER_IP }}"
+          ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
       # 4. Тест подключения по SSH
       - name: Test SSH connection
@@ -55,8 +55,27 @@ jobs:
       - name: Deploy to Server
         run: |
          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} "
-         docker pull ${{ secrets.DOCKERHUB_USERNAME }}/miniapp:latest && \  # Получаем последний образ
-         docker stop my-app || true && \  # Останавливаем контейнер
-         docker rm my-app || true && \  # Удаляем контейнер
+         docker pull ${{ secrets.DOCKERHUB_USERNAME }}/miniapp:latest && \
+         docker stop my-app || true && \
+         docker rm my-app || true && \
          docker run -d --name my-app -p 80:80 ${{ secrets.DOCKERHUB_USERNAME }}/miniapp:latest
          "
+
+  pages:
+    runs-on: ubuntu-latest
+    needs: deploy  # Этот job будет запущен после job deploy
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Copy index.html to public folder
+        run: |
+          mkdir -p public
+          cp index.html public/index.html
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
