@@ -1,7 +1,16 @@
 import logging
 import aiohttp
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, CallbackQueryHandler, ContextTypes
+import json
+
+from telegram import (Update, KeyboardButton, InlineKeyboardButton,WebAppInfo,
+                      InlineKeyboardMarkup, ReplyKeyboardMarkup)
+
+
+from telegram.ext import (ApplicationBuilder,
+                          CommandHandler,CallbackContext,
+                          MessageHandler, filters,
+                          CallbackQueryHandler, ContextTypes)
+
 
 # Настройка логгера
 logging.basicConfig(
@@ -9,6 +18,12 @@ logging.basicConfig(
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
+async def launch_web_ui(update: Update, callback: CallbackContext):
+    # For now, we just display google.com...
+    kb = [
+        [KeyboardButton("Show me Google!", web_app=WebAppInfo("https://google.com"))]
+    ]
+    await update.message.reply_text("Let's do this...", reply_markup=ReplyKeyboardMarkup(kb))
 
 # Функция для поиска фильмов
 async def search_movies(title: str) -> dict:
