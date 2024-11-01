@@ -99,11 +99,11 @@ async def movie_details(update: Update, context: CallbackContext) -> None:
 if __name__ == '__main__':
     application = ApplicationBuilder().token('7360518240:AAEJ75gYh5IcuiS2tVWvSJfMIF35E7bf4jg').build()
 
-    # Обработчик для начального взаимодействия
-    application.add_handler(MessageHandler(filters.COMMAND, show_start_button))
-
     # Обработчик для нажатия на кнопку "Start"
     application.add_handler(MessageHandler(filters.Regex("^Start$"), start_button_action))
+
+    # Обработчик для текстовых сообщений (вызывает кнопку "Start" при первом запуске)
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, show_start_button))
 
     # Обработчик для поиска фильмов
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, get_movie))
@@ -111,4 +111,5 @@ if __name__ == '__main__':
     # Обработчик для получения деталей фильма
     application.add_handler(CallbackQueryHandler(movie_details))
 
+    # Запуск бота
     application.run_polling()
