@@ -7,4 +7,4 @@ services:
     ports:
       - "80:80"  # Если нужно открыть порты
     environment:
-      - TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }}  # Укажите переменную окружения для токена
+      - TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }}  # Укажите переменную окружения для токенаa
