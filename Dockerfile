@@ -1,7 +1,7 @@
 # Используем официальный базовый образ Python
 FROM python:3.9-slim
 
-ENV TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
+ENV TELEGRAM_TOKEN=7360518240:AAEJ75gYh5IcuiS2tVWvSJfMIF35E7bf4jg
 
 # Устанавливаем рабочую директорию в контейнере
 WORKDIR /app
