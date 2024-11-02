@@ -12,12 +12,12 @@ logger = logging.getLogger(__name__)
 async def show_start_button(update: Update, context: CallbackContext) -> None:
     kb = [[KeyboardButton("Start")]]
     reply_markup = ReplyKeyboardMarkup(kb, resize_keyboard=True, one_time_keyboard=True)
-    await update.message.reply_text("Нажмите кнопку 'Start' для начала работы с ботом:", reply_markup=reply_markup)
+    await update.message.reply_text("Press start", reply_markup=reply_markup)
 
 # Функция для обработки нажатия на кнопку "Start"
 async def start_button_action(update: Update, context: CallbackContext) -> None:
     kb = [[KeyboardButton("Open MiniApp", web_app=WebAppInfo(url="https://immorta192.github.io/MiniApp/"))]]
-    await update.message.reply_text("Бот запущен!! Нажмите кнопку ниже, чтобы открыть мини-приложение:", reply_markup=ReplyKeyboardMarkup(kb, resize_keyboard=True))
+    await update.message.reply_text("Click the button below to open the mini-app", reply_markup=ReplyKeyboardMarkup(kb, resize_keyboard=True))
 
 
 # Функция для поиска фильмов
