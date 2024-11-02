@@ -16,13 +16,13 @@ async def show_start_button(update: Update, context: CallbackContext) -> None:
 
 # Функция для обработки нажатия на кнопку "Start"
 async def start_button_action(update: Update, context: CallbackContext) -> None:
-    kb = [[KeyboardButton("Open MiniApp", web_app=WebAppInfo(url="https://immorta192.github.io/MiniApp/?v2"))]]
+    kb = [[KeyboardButton("Open MiniApp", web_app=WebAppInfo(url="https://immorta192.github.io/MiniApp/?cachebuster=2"))]]
     await update.message.reply_text("Бот запущен! Нажмите кнопку ниже, чтобы открыть мини-приложение:", reply_markup=ReplyKeyboardMarkup(kb, resize_keyboard=True))
 
 
 # Функция для поиска фильмов
 async def search_movies(title: str) -> dict:
-    api_key = 'bf196073'  # Ваш API ключ
+    api_key = 'bf196073'  # API ключ
     base_url = 'http://www.omdbapi.com/'
     params = {'apikey': api_key, 's': title}
 
